@@ -1,0 +1,39 @@
+name: Daily Sales Aggregation
+
+on:
+  schedule:
+    # 毎日JST 03:00 (UTC 18:00) に実行
+    - cron: '0 18 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  aggregate-sales:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run sales aggregation
+      env:
+        SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+        SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
+        SHOPIFY_API_VERSION: ${{ secrets.SHOPIFY_API_VERSION }}
+      run: npm run aggregate
+      
+    - name: Report completion
+      if: success()
+      run: echo "売上集計が正常に完了しました"
+      
+    - name: Report failure
+      if: failure()
+      run: echo "売上集計でエラーが発生しました"

@@ -1,0 +1,17 @@
+{
+  "name": "handball-shop-automation",
+  "version": "1.0.0",
+  "description": "Shopify売上集計・メタフィールド自動更新システム",
+  "main": "scripts/aggregate.js",
+  "scripts": {
+    "aggregate": "node scripts/aggregate.js",
+    "test": "node scripts/test.js"
+  },
+  "keywords": ["shopify", "automation", "sales", "metafields"],
+  "author": "gussan",
+  "license": "ISC",
+  "dependencies": {
+    "node-fetch": "^2.6.12",
+    "dotenv": "^16.3.1"
+  }
+}
