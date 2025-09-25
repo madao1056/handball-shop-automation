@@ -263,6 +263,80 @@ npm run aggregate
 
 よくある問題と解決方法は `TROUBLESHOOTING.md` を参照してください。
 
+## 実際の構築記録（2025年9月25日実施）
+
+### 構築環境
+- **Shopifyストア**: handball-development.myshopify.com
+- **GitHubリポジトリ**: https://github.com/madao1056/handball-shop-automation
+- **実行ユーザー**: madao1056
+
+### 実施内容
+
+#### 1. ローカル環境での初回実行
+```bash
+cd /Users/hashiguchimasaki/shopify/handball-shop-automation
+npm run aggregate
+```
+**結果**: 
+- 35件の支払済み注文を処理
+- 9個の商品の売上を集計
+- 18個のメタフィールドを更新成功
+
+#### 2. GitHub リポジトリ作成・自動化設定
+```bash
+# Gitリポジトリ初期化
+git init
+git add .
+git commit -m "Initial commit: Shopify売上集計自動化システム"
+
+# GitHub CLIでリポジトリ作成
+gh repo create handball-shop-automation --public --source=. --push
+
+# Secrets設定
+gh secret set SHOPIFY_SHOP_DOMAIN --body "handball-development.myshopify.com"
+gh secret set SHOPIFY_ADMIN_ACCESS_TOKEN --body "shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+gh secret set SHOPIFY_API_VERSION --body "2025-04"
+
+# 手動実行テスト
+gh workflow run daily.yml
+```
+
+#### 3. GitHub Actions 動作確認
+- **初回実行日時**: 2025-09-25T13:03:34Z
+- **実行時間**: 16秒
+- **ステータス**: ✅ 成功
+- **実行ID**: 18008369609
+
+### 自動実行スケジュール
+- **毎日 JST 03:00（UTC 18:00）に自動実行**
+- 手動実行も可能: https://github.com/madao1056/handball-shop-automation/actions
+
+### トラブルシューティングで解決した問題
+
+#### 1. メタフィールドアクセスエラー
+**エラー**: `could not convert Metafields::MetafieldDrop into money`
+**解決**: `.value`を追加
+```liquid
+{{ product.metafields.stats.lifetime_sales_amount.value | money }}
+```
+
+#### 2. 合計金額の計算ミス
+**問題**: 186,670円が1,867円と表示
+**解決**: セント値を円に変換してから加算
+```liquid
+{%- assign amount = cents | divided_by: 100 -%}
+{%- assign grand_total = grand_total | plus: amount -%}
+```
+
+#### 3. 単品表示の金額ミス
+**問題**: 44,000円が440円と表示
+**解決**: Money型メタフィールドを直接使用（セント変換を削除）
+
+### 運用状況
+- **データ更新**: 毎日自動で最新の売上データに更新
+- **監視**: GitHub Actions タブで実行ログを確認
+- **メンテナンス**: 環境変数の更新はGitHub Secretsで管理
+
 ## 次のステップ
 
 1. **チップ合計の追加**: 注文のtipsAmountも集計対象に追加
