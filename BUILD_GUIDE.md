@@ -148,10 +148,9 @@ jobs:
   <!-- セント値を取得 -->
   {%- assign cents = product.metafields.stats.lifetime_sales_cents.value | default: 0 -%}
   
-  <!-- 合計計算（セント→円変換） -->
+  <!-- 合計計算（セント値をそのまま加算） -->
   {%- if cents and cents != 0 -%}
-    {%- assign amount = cents | divided_by: 100 -%}
-    {%- assign grand_total = grand_total | plus: amount -%}
+    {%- assign grand_total = grand_total | plus: cents -%}
   {%- endif -%}
   
   <!-- 個別商品表示（Money型メタフィールド使用） -->
@@ -160,9 +159,11 @@ jobs:
   {%- endif -%}
 {%- endfor -%}
 
-<!-- 合計表示 -->
+<!-- 合計表示（moneyフィルターが自動でセント→円変換） -->
 {{ grand_total | money }}
 ```
+
+**重要：** `money`フィルターはセント値を自動的に円に変換します。手動で100で割る必要はありません。
 
 ### 4.2 単品売上表示セクション  
 **sections/ingle-product-sales.liquid**
@@ -232,8 +233,18 @@ npm run aggregate
 
 ### 合計金額の計算方法
 1. **個別表示**: Money型メタフィールドを直接使用
-2. **合計計算**: セント値を円に変換してから加算
+2. **合計計算**: セント値をそのまま加算して、`money`フィルターで表示
 3. **デバッグ**: HTMLコメントで値を確認
+
+**重要な発見：**
+```liquid
+<!-- セント値をそのまま加算 -->
+{%- assign grand_total = grand_total | plus: cents -%}
+
+<!-- moneyフィルターが自動変換 -->
+{{ grand_total | money }}
+```
+Shopifyの`money`フィルターは、セント単位の整数を自動的に通貨の金額に変換します。手動で100で割る必要はありません。
 
 ### 売上集計の処理フロー
 1. **注文取得**: `financial_status=paid` の注文のみ

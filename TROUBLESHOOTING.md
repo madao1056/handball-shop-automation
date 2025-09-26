@@ -126,9 +126,31 @@ node scripts/debug.js
 
 1. **メタフィールド定義時**: 型を明確に理解してから実装する
 2. **Liquid実装時**: `.value`を必ず付ける
-3. **数値計算時**: セント⇔円の変換を正確に行う
+3. **数値計算時**: `money`フィルターの自動変換を信頼する（手動で100で割らない）
 4. **テスト時**: 個別値と合計値の両方を必ず確認する
 5. **デバッグ時**: コメントでの値確認を活用する
+
+### 重要な学び：Shopify moneyフィルターの挙動
+
+Shopifyの`money`フィルターは、セント単位の整数を自動的に通貨金額に変換します。
+
+```liquid
+<!-- セント値：18667000 -->
+{{ 18667000 | money }}
+<!-- 出力：¥186,670 -->
+```
+
+**間違った実装例：**
+```liquid
+{%- assign grand_total = grand_total | plus: cents -%}
+{{ grand_total | divided_by: 100 | money }}  <!-- ❌ 1,867円になる -->
+```
+
+**正しい実装：**
+```liquid
+{%- assign grand_total = grand_total | plus: cents -%}
+{{ grand_total | money }}  <!-- ✅ 186,670円になる -->
+```
 
 ### 参考情報
 
